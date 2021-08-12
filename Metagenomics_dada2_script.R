@@ -36,10 +36,93 @@ out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,160),
                      compress=TRUE, multithread=TRUE) 
 head(out)
 
+errF <- learnErrors(filtFs, multithread=TRUE)
 
-FILT
+errR <- learnErrors(filtRs, multithread=TRUE)
 
-R.version
+plotErrors(errF, nominalQ=TRUE)
+
+dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
+
+dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
+
+dadaFs[[1]]
+
+# Merge pared reads
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
+
+# Inspect the merger data.frame from the first sample
+head(mergers[[1]])
+
+# constructing sequence table
+seqtab <- makeSequenceTable(mergers)
+dim(seqtab)
+
+# Inspect distribution of sequence lengths
+table(nchar(getSequences(seqtab)))
+
+# removing chimeras
+seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+dim(seqtab.nochim)
+
+#frequency of chimeric sequences
+sum(seqtab.nochim)/sum(seqtab)
+
+# track reads through the pipe line
+getN <- function(x) sum(getUniques(x))
+track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+
+# If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
+colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+rownames(track) <- sample.names
+head(track)
+
+# assigning OTU
+taxa <- assignTaxonomy(seqtab.nochim, "/Users/cley/Desktop/RT/metagenimics_learning/metagenomics/taxa/silva_nr_v132_train_set.fa.gz", multithread=TRUE)
+
+# make species level assignments based on exact matching
+taxa <- addSpecies(taxa, "/Users/cley/Desktop/RT/metagenimics_learning/metagenomics/taxa/silva_species_assignment_v132.fa.gz")
+
+# inspect taxonomic assignment
+taxa.print <- taxa # Removing sequence rownames for display only
+rownames(taxa.print) <- NULL
+head(taxa.print)
+
+# evaluate acuracy
+
+unqs.mock <- seqtab.nochim["Mock",]
+unqs.mock <- sort(unqs.mock[unqs.mock>0], decreasing=TRUE) # Drop ASVs absent in the Mock
+cat("DADA2 inferred", length(unqs.mock), "sample sequences present in the Mock community.\n")
+
+
+mock.ref <- getSequences(file.path(path, "HMP_MOCK.v35.fasta"))
+match.ref <- sum(sapply(names(unqs.mock), function(x) any(grepl(x, mock.ref))))
+cat("Of those,", sum(match.ref), "were exact matches to the expected reference sequences.\n")
+
+
+# phyloseq
+
+BiocManager::install("phyloseq")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
