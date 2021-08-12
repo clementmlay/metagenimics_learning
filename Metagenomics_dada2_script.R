@@ -1,3 +1,7 @@
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install("dada2", version = "3.13")
+
 library(dada2)
 
 path <- "/Users/cley/Desktop/RT/metagenimics_learning/metagenomics/data/MiSeq_SOP"
@@ -35,7 +39,7 @@ head(out)
 
 FILT
 
-
+R.version
 
 
 
