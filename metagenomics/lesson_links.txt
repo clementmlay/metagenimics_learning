@@ -1,1 +1,8 @@
+Link1, data analysis with dada2 
 https://benjjneb.github.io/dada2/tutorial.html
+
+Whole meta genome sequencing
+https://www.hadriengourle.com/tutorials/wms/
+
+Whole meta genome assembly 
+https://www.hadriengourle.com/tutorials/meta_assembly/
