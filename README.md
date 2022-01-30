@@ -1,1 +1,1 @@
-# metagenimics_learning
+# metagenomics_learning
